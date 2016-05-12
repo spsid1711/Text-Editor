@@ -2,14 +2,15 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="C:/Users/Bera/Desktop/Java Libraries/poi-3.14/poi-3.14-20160307.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Bera/Desktop/Java Libraries/poi-3.14/poi-ooxml-3.14-20160307.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Bera/Desktop/Java Libraries/poi-3.14/poi-ooxml-schemas-3.14-20160307.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Bera/Desktop/Java Libraries/poi-3.14/ooxml-lib/curvesapi-1.03.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Bera/Desktop/Java Libraries/poi-3.14/ooxml-lib/xmlbeans-2.6.0.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Bera/Desktop/Java Libraries/spell checker/jortho.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Bera/Desktop/Java Libraries/jazzy/jazzy0-2-1.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Bera/Downloads/jazzy-core-0.5.2.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Bera/Desktop/Java Libraries/jazzy_2/www/jazzy-applet.jar"/>
+	<classpathentry kind="lib" path="lib/jortho.jar"/>
+	<classpathentry kind="lib" path="lib/itext-pdfa-5.5.9-javadoc.jar"/>
+	<classpathentry kind="lib" path="lib/itext-pdfa-5.5.9-sources.jar"/>
+	<classpathentry kind="lib" path="lib/itext-pdfa-5.5.9.jar"/>
+	<classpathentry kind="lib" path="lib/itext-xtra-5.5.9-javadoc.jar"/>
+	<classpathentry kind="lib" path="lib/itext-xtra-5.5.9-sources.jar"/>
+	<classpathentry kind="lib" path="lib/itext-xtra-5.5.9.jar"/>
+	<classpathentry kind="lib" path="lib/itextpdf-5.5.9-javadoc.jar"/>
+	<classpathentry kind="lib" path="lib/itextpdf-5.5.9-sources.jar"/>
+	<classpathentry kind="lib" path="lib/itextpdf-5.5.9.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

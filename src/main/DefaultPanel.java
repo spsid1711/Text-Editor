@@ -3,6 +3,7 @@
 package main;
 
 import java.awt.BorderLayout;
+import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
 import java.awt.Toolkit;
@@ -11,15 +12,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
-import java.util.Timer;
 
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -29,30 +29,31 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.*;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
-
-import org.apache.poi.util.SystemOutLogger;
+import javax.swing.text.rtf.RTFEditorKit;
 
 import com.inet.jortho.FileUserDictionary;
 import com.inet.jortho.SpellChecker;
-
-import javafx.scene.control.ScrollBar;
+import com.itextpdf.text.pdf.PdfContentByte;
+import com.itextpdf.text.pdf.PdfTemplate;
+import com.itextpdf.text.pdf.*;
+import com.itextpdf.*;
 
 public class DefaultPanel extends JPanel {
 	
 	private File file;
 	private JFileChooser fc;
 	public JTextPane textPane;
-	private String s = "";
 	private StringBuilder sb;
 	private Scanner in;
 	private Boolean firstTime = true;
 	private JMenuItem bold;
 	private MutableAttributeSet set;
-	private Timer timer;
 	private StyledDocument doc;
+	private RTFEditorKit rtf;
 	
 	public DefaultPanel() {
 		
@@ -97,6 +98,8 @@ public class DefaultPanel extends JPanel {
 		underline.addActionListener(new Listener6());
 		menu2.add(underline);
 		
+		menu2.addSeparator();
+		
 		//menu item ; set font size
 		JMenuItem fontSize = new JMenuItem("Font size");
 		fontSize.addActionListener(new Listener7());
@@ -131,6 +134,8 @@ public class DefaultPanel extends JPanel {
 		item3.addActionListener(new Listener3());
 		menu.add(item3);
 		
+		menu.addSeparator();
+		
 		//menu item : exit
 		JMenuItem item4 = new JMenuItem("Exit");
 		item4.setMnemonic(KeyEvent.VK_E);
@@ -145,6 +150,18 @@ public class DefaultPanel extends JPanel {
 		});
 		menu.add(item4);
 		
+		JMenu menu3 = new JMenu("PDF");
+		
+		JMenuItem pdf = new JMenuItem("Export to PDF");
+		pdf.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				PDF();
+				
+			}
+		});
+		menu3.add(pdf);
+		
+		menuBar.add(menu3);
 		panel.add(menuBar);
 		
 		//panel2 for the textPane
@@ -155,8 +172,11 @@ public class DefaultPanel extends JPanel {
 		textPane = new JTextPane();
 		panel2.add(textPane);
 		
+		JPanel noWrapPanel = new JPanel( new BorderLayout() );
+		noWrapPanel.add( textPane );
 		
-		JScrollPane scroll = new JScrollPane(textPane);
+		JScrollPane scroll = new JScrollPane(noWrapPanel);
+		scroll.setViewportView(textPane);
 		panel2.add(scroll);
 		
 		//change the font using JOrtho
@@ -262,26 +282,13 @@ public class DefaultPanel extends JPanel {
 		
 		public class Listener8 implements ActionListener {
 			public void actionPerformed(ActionEvent e) {
-				
-				JFrame frame = new JFrame("Fonts");
-				frame.setSize(200, 300);
-				frame.setLocationRelativeTo(null);
-				frame.setDefaultCloseOperation(frame.DISPOSE_ON_CLOSE);
 
 				GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 				String[] fnt = ge.getAvailableFontFamilyNames();
-				JTextPane tp = new JTextPane();
-				JScrollPane sb = new JScrollPane(tp, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-				String g = "Fonts: ";
-				for (int i = 0; i < fnt.length; i++){	
-					g = g + fnt[i] + ", ";
-				}
-				tp.setText(g);
-				frame.add(sb);
-				frame.setVisible(true);
 				
-				String font = JOptionPane.showInputDialog("Enter the font");
-				setFontFamily(font);
+				String input = (String) JOptionPane.showInputDialog(null, "Choose the font ", 
+						"Font", JOptionPane.QUESTION_MESSAGE, null, fnt, fnt[0]);
+				setFontFamily(input);
 				
 			}
 		}
@@ -304,13 +311,13 @@ public class DefaultPanel extends JPanel {
 		public void Save() {
 			
 			if(firstTime == false) {
+				
 				BufferedWriter out;
 				try {
 					out = new BufferedWriter(new FileWriter(file));
+					Document doc = textPane.getStyledDocument();
 					out.write(textPane.getText());
-					s = textPane.getText();
 					sb.append(textPane.getText());
-					s = sb.toString();
 					
 					out.close();
 				} catch (IOException e1) {
@@ -320,30 +327,29 @@ public class DefaultPanel extends JPanel {
 			
 			else {
 				JOptionPane.showMessageDialog(null, "A file is not open", "Error",
-                        JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.ERROR_MESSAGE);	
 			}
 		}
 		
 		public void SaveAs() {
 			
-//			if( firstTime == false) {
-//				Save();
-//			}
+			if( firstTime == false) {
+				Save();
+			}
 			
 			JFileChooser dir = new JFileChooser(new File("C://"));
 			
 			int returnVal = dir.showSaveDialog(dir);
 			
 	        if (returnVal == JFileChooser.APPROVE_OPTION) {
+	        
+	       
 	        	
 	        	try {
-					FileWriter fw = new FileWriter(dir.getSelectedFile() + ".txt");
+					FileWriter fw = new FileWriter(dir.getSelectedFile() + ".rtf");
 					firstTime = false;
 					fw.write(textPane.getText());
-					//s = textPane.getText();
 					sb.equals(textPane.getText());
-					s = sb.toString();
-					System.out.println(sb.toString());
 					
 					
 					fw.close();
@@ -354,24 +360,15 @@ public class DefaultPanel extends JPanel {
 	        }  else {
 	        	System.out.println("Cannot save the file");
 	        }
-	        
-	        
-		}
+	     }
 		
 		public void OpenFile() {
 			if(firstTime == false) {
 				Save();
 				file = null;
-			//	sb.equals("");
-			//	s = "";
-			}
-
-		//	s = "";			
+			}		
 			
 			fc = new JFileChooser();
-			
-		//	FileNameExtensionFilter ff = new FileNameExtensionFilter("Text Files", "txt");
-		//	fc.setFileFilter(ff);
 			
 			int returnVal = fc.showOpenDialog(fc);
 
@@ -382,41 +379,29 @@ public class DefaultPanel extends JPanel {
 	        }
 	        
 			try {
-				in = new Scanner(file);
-				while(in.hasNext()) {
-				//	s = s + "" +in.nextLine();
-					sb.append(sb.toString() + "" + in.nextLine());
-					System.out.println(sb.toString());
-				}
 				
-				textPane.setText(sb.toString());
-				s = sb.toString();
+				FileInputStream fi = new FileInputStream(file);
+				rtf.read(fi, textPane.getDocument(), 0);
+				
+//				in = new Scanner(file);
+//				while(in.hasNext()) {
+//					sb.append(in.nextLine());
+//				}
+//				
+//				textPane.setText(sb.toString());
 				
 			} catch (FileNotFoundException e1) {
 				System.out.println("A problem occurred while oppening the file :(");
-			} catch (IOException e1) {
-				System.out.println("A problem occurred.");
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (BadLocationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+			
 			firstTime = false;
 		}
-		public StringBuilder getSb() {
-			if(firstTime == false) {
-				Save();
-			}
-			sb.equals("");
-			sb.append(textPane.getText());
-			return sb;
-		}
-
-		public String getS() {
-			return s;
-			
-		}
-//
-//		public void setS(String s) {
-//			this.s = s;
-//		}
-
 		public void Bold() {
 			set = textPane.getInputAttributes();
 			StyleConstants.setBold(set, true);
@@ -480,5 +465,43 @@ public class DefaultPanel extends JPanel {
 			
 		}
 		
+		public void PDF() {
+			com.itextpdf.text.Document document = new com.itextpdf.text.Document();
+			
+			JFileChooser dir = new JFileChooser(new File("C://"));
+			
+			int returnVal = dir.showSaveDialog(dir);
+			
+	        if (returnVal == JFileChooser.APPROVE_OPTION) {
+	        	try {
+		    		PdfWriter writer;
+		    		  writer = PdfWriter.getInstance(document,
+		    		            new FileOutputStream(dir.getSelectedFile()));
+		    		
+		    		document.open();
+		    		
+		    		PdfContentByte cb = writer.getDirectContent();
+		    		PdfTemplate tp = cb.createTemplate(500,500);
+		    		
+		    		Graphics2D g2;
+		    		
+		    		g2 = tp.createGraphics( 500, 500);
+		    		
+		    		textPane.print(g2);
+		    		g2.dispose();
+		    		
+		    		cb.addTemplate(tp, 30, 300);
+		    	}  catch (Exception e) {
+		    	      System.err.println(e.getMessage());
+		    	}
+		    	
+		    	document.close();
+	        		
+	        }  else {
+	        	System.out.println("Cannot save the file");
+	        }
+	    	
+	    
+	    }
 }
 
