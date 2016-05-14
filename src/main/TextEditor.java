@@ -1,9 +1,14 @@
 package main;
 
+import java.awt.Image;
+
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+
+import com.sun.glass.ui.Application;
 
 public class TextEditor {
 
@@ -24,13 +29,13 @@ public class TextEditor {
 		}
 
 		SwingUtilities.updateComponentTreeUI(frame);
-
+		
 		frame.setContentPane(new DefaultPanel());
 		frame.setSize(700, 500);
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 		frame.setDefaultCloseOperation(frame.EXIT_ON_CLOSE);
-
+		
 	}
 
 }

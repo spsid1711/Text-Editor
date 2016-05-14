@@ -1,46 +1,17 @@
-//author: Enes Tasbasi
-
 package main;
 
-import java.awt.BorderLayout;
-import java.awt.Desktop;
-import java.awt.Graphics2D;
-import java.awt.GraphicsEnvironment;
-import java.awt.GridLayout;
-import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Scanner;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.util.*;
 
-import javax.swing.JFileChooser;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
-import javax.swing.KeyStroke;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import javax.swing.text.MutableAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
-import javax.swing.text.rtf.RTFEditorKit;
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.text.*;
+import javax.swing.text.rtf.*;
 
-import com.inet.jortho.FileUserDictionary;
-import com.inet.jortho.SpellChecker;
-import com.itextpdf.text.pdf.PdfContentByte;
-import com.itextpdf.text.pdf.PdfTemplate;
-import com.itextpdf.text.pdf.PdfWriter;
+import com.inet.jortho.*;
+import com.itextpdf.text.pdf.*;
 
 public class DefaultPanel extends JPanel {
 	
@@ -54,6 +25,9 @@ public class DefaultPanel extends JPanel {
 	private MutableAttributeSet set;
 	private StyledDocument doc;
 	private RTFEditorKit rtf;
+	private JLabel label;
+	private String loc;
+	private String info = "";
 	
 	public DefaultPanel() {
 		
@@ -172,20 +146,22 @@ public class DefaultPanel extends JPanel {
 		
 		//panel2 for the textPane
 		JPanel panel2 = new JPanel();
-		panel2.setLayout(new GridLayout(1,1));
+		panel2.setLayout(new BorderLayout());
 		add(panel2);
 		
 		textPane = new JTextPane();
+		textPane.addCaretListener(new caretListener());
 		panel2.add(textPane);
 		
-		JPanel noWrapPanel = new JPanel( new BorderLayout() );
-		noWrapPanel.add( textPane );
+		label = new JLabel("Status");
+		panel2.add(label, BorderLayout.PAGE_END);
 		
-		JScrollPane scroll = new JScrollPane(noWrapPanel);
+		JScrollPane scroll = new JScrollPane(textPane);
 		scroll.setViewportView(textPane);
 		panel2.add(scroll);
 		
-		//change the font using JOrtho
+		
+		// add the spell checker
 		SpellChecker.setUserDictionaryProvider(new FileUserDictionary());      
 		SpellChecker.registerDictionaries( null, null );
 	    SpellChecker.register(textPane);
@@ -200,6 +176,8 @@ public class DefaultPanel extends JPanel {
 		SetFontSize(20);
 		
 		textPane.setText(" ");
+		
+		sb = new StringBuilder("");
 		
 		
 //		Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -299,20 +277,15 @@ public class DefaultPanel extends JPanel {
 			}
 		}
 		
-//		public class caretListener implements CaretListener {
-//
-//			@Override
-//			public void caretUpdate(CaretEvent e) {
-//				System.out.println(StyleConstants.isBold(set));
-//				if(StyleConstants.isBold(set) == true) {
-//					bold.setSelected(true);
-//				} else {
-//					bold.setSelected(false);
-//				}
-//				
-//			}
-//			
-//		}
+		public class caretListener implements CaretListener {
+
+			@Override
+			public void caretUpdate(CaretEvent e) {
+				loc = e.toString();
+				updateStatus();
+			}
+			
+		}
 		
 		public void Save() {
 			
@@ -327,7 +300,7 @@ public class DefaultPanel extends JPanel {
 					
 					out.close();
 				} catch (IOException e1) {
-					System.out.println("A problem occured while saving the file.");
+					info = "Could not save the file.";
 				}
 			}
 			
@@ -360,11 +333,11 @@ public class DefaultPanel extends JPanel {
 					
 					fw.close();
 				} catch (IOException e) {
-					System.out.println("A problem occurred :(");
+					info = "Cannot save the file specified";
 				}
 	        		
 	        }  else {
-	        	System.out.println("Cannot save the file");
+	        	info = "Canceled by user";
 	        }
 	     }
 		
@@ -381,7 +354,7 @@ public class DefaultPanel extends JPanel {
 	        if (returnVal == JFileChooser.APPROVE_OPTION) {
 	            file = fc.getSelectedFile();
 	        } else {
-	           System.out.println("Can't open the file");
+	          info = "Can't open the file.";
 	        }
 	        
 			try {
@@ -396,15 +369,9 @@ public class DefaultPanel extends JPanel {
 //				
 //				textPane.setText(sb.toString());
 				
-			} catch (FileNotFoundException e1) {
-				System.out.println("A problem occurred while oppening the file :(");
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (BadLocationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			} catch (Exception e1) {
+				info = "The file is not found.";
+			} 
 			
 			firstTime = false;
 		}
@@ -482,7 +449,7 @@ public class DefaultPanel extends JPanel {
 		    		document.open();
 		    		
 		    		PdfContentByte cb = writer.getDirectContent();
-		    		PdfTemplate tp = cb.createTemplate(500,500);
+		    		PdfTemplate tp = cb.createTemplate(1000,1000);
 		    		
 		    		Graphics2D g2;
 		    		
@@ -492,8 +459,10 @@ public class DefaultPanel extends JPanel {
 		    		g2.dispose();
 		    		
 		    		cb.addTemplate(tp, 30, 300);
+		    		
+		    		info = "Success.";
 		    	}  catch (Exception e) {
-		    	      System.err.println(e.getMessage());
+		    	     info = "Unsuccessful.";
 		    	}
 		    	
 		    	document.close();
@@ -509,13 +478,15 @@ public class DefaultPanel extends JPanel {
 		    	if(file.exists())
 					try {
 						desktop.open(file);
+						
+				
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						info = "the file doesn't exist";
 					}
-	        
-	    	
-	    
 	    }
+		
+		public void updateStatus() {
+			label.setText(loc + "               " + info);
+		}
 }
 
