@@ -3,6 +3,7 @@
 package main;
 
 import java.awt.BorderLayout;
+import java.awt.Desktop;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
@@ -29,7 +30,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.*;
+import javax.swing.text.Document;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
@@ -39,8 +40,7 @@ import com.inet.jortho.FileUserDictionary;
 import com.inet.jortho.SpellChecker;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfTemplate;
-import com.itextpdf.text.pdf.*;
-import com.itextpdf.*;
+import com.itextpdf.text.pdf.PdfWriter;
 
 public class DefaultPanel extends JPanel {
 	
@@ -155,7 +155,13 @@ public class DefaultPanel extends JPanel {
 		JMenuItem pdf = new JMenuItem("Export to PDF");
 		pdf.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				PDF();
+				JFileChooser dir = new JFileChooser(new File("C://"));
+				
+				int returnVal = dir.showSaveDialog(dir);
+				
+		        if (returnVal == JFileChooser.APPROVE_OPTION) {
+		        	PDF(dir.getSelectedFile());
+		        }
 				
 			}
 		});
@@ -465,18 +471,13 @@ public class DefaultPanel extends JPanel {
 			
 		}
 		
-		public void PDF() {
+		public void PDF(File file) {
 			com.itextpdf.text.Document document = new com.itextpdf.text.Document();
 			
-			JFileChooser dir = new JFileChooser(new File("C://"));
-			
-			int returnVal = dir.showSaveDialog(dir);
-			
-	        if (returnVal == JFileChooser.APPROVE_OPTION) {
 	        	try {
 		    		PdfWriter writer;
 		    		  writer = PdfWriter.getInstance(document,
-		    		            new FileOutputStream(dir.getSelectedFile()));
+		    		            new FileOutputStream(file));
 		    		
 		    		document.open();
 		    		
@@ -496,10 +497,23 @@ public class DefaultPanel extends JPanel {
 		    	}
 		    	
 		    	document.close();
-	        		
-	        }  else {
-	        	System.out.println("Cannot save the file");
-	        }
+		    	
+		    	File f = new File(file.getAbsolutePath());
+		    	
+		    	if(!Desktop.isDesktopSupported()){
+		            System.out.println("Desktop is not supported");
+		            return;
+		        }
+		    	
+		    	Desktop desktop = Desktop.getDesktop();
+		    	if(file.exists())
+					try {
+						desktop.open(file);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+	        
 	    	
 	    
 	    }
